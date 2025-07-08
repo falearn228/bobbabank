@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"net/http"
+	"time"
 
 	db "bobbabank/internal/db/sqlc"
 	"bobbabank/internal/util"
@@ -12,10 +13,10 @@ import (
 )
 
 type createUsernameReq struct {
-	Username string `json:"username" binding:"required, alphanum"`
+	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=6"`
 	FullName string `json:"full_name" binding:"required"`
-	Email    string `json:"email" binding:"required, email"`
+	Email    string `json:"email" binding:"required,email"`
 }
 
 func (server *Server) createUsername(ctx *gin.Context) {
@@ -51,7 +52,14 @@ func (server *Server) createUsername(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	userResp := getUserResp{
+		Username:  user.Username,
+		FullName:  user.FullName,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+	}
+
+	ctx.JSON(http.StatusOK, userResp)
 }
 
 type getUserReq struct {
@@ -59,10 +67,10 @@ type getUserReq struct {
 }
 
 type getUserResp struct {
-	Username  string `json:"username"`
-	FullName  string `json:"full_name"`
-	Email     string `json:"email"`
-	CreatedAt string `json:"created_at"`
+	Username  string    `json:"username"`
+	FullName  string    `json:"full_name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (server *Server) getUser(ctx *gin.Context) {
@@ -78,7 +86,7 @@ func (server *Server) getUser(ctx *gin.Context) {
 		Username:  user.Username,
 		FullName:  user.FullName,
 		Email:     user.Email,
-		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
+		CreatedAt: user.CreatedAt,
 	}
 
 	if err != nil {
